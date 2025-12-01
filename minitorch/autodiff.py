@@ -101,6 +101,9 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
     nodes = list(topological_sort(variable))
+    print(nodes)
+    node_ids = {node.unique_id:node for node in nodes}
+    print(node_ids)
     derivatives = {variable.unique_id: deriv}
 
     for node in nodes:
@@ -123,6 +126,7 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
                 derivatives[var_id] += der
 
     # Second pass: accumulate derivatives for all leaf nodes
+    print(derivatives)
     for node in nodes:
         if node.is_leaf() and node.unique_id in derivatives:
             node.accumulate_derivative(derivatives[node.unique_id])
