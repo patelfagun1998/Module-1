@@ -115,7 +115,6 @@ def zipWith(fn: Callable[[float, float], float], lst1: Iterable[float], lst2:Ite
 
 def reduce(fn: Callable[[float, float], float], lst: Iterable[float]) -> float:
 
-    print(lst)
     if not lst:
         return 0
     it = iter(lst)

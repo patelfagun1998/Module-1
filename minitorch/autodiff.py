@@ -80,14 +80,15 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
         if var.unique_id in seen:
             return
         
-        result.append(var)
         seen.add(var.unique_id)
 
         if not var.is_leaf():
             for node in var.parents:
                 dfs(node)
+        
+        result.append(var)
     dfs(variable)
-    return result
+    return reversed(result)
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
     """
@@ -100,33 +101,43 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
+    # 1. Call topological sort to get an ordered queue
     nodes = list(topological_sort(variable))
-    print(nodes)
-    node_ids = {node.unique_id:node for node in nodes}
-    print(node_ids)
+    
+    # 2. Create a dictionary of Scalars and current derivatives
     derivatives = {variable.unique_id: deriv}
 
+    # 3. For each node in backward order
     for node in nodes:
+        # Pull a completed Scalar and derivative from the queue
         if node.unique_id not in derivatives:
             continue
         
-        # skip leaf for now
+        d_out = derivatives[node.unique_id]
+        
+        # a. If the Scalar is a leaf, we'll accumulate its derivative later
+        # (after all paths have been processed)
         if node.is_leaf():
             continue
-
-        chain_deriv = node.chain_rule(derivatives[node.unique_id])
-
+        
+        # b. If the Scalar is not a leaf:
+        # i. Call .chain_rule on the last function with dout
+        chain_deriv = node.chain_rule(d_out)
+        
+        # ii. Loop through all the Scalars+derivative produced by the chain rule
         for var, der in chain_deriv:
+            # Skip constants
             if var.is_constant():
                 continue
+            
+            # iii. Accumulate derivatives for the Scalar in a dictionary
             var_id = var.unique_id
             if var_id not in derivatives:
                 derivatives[var_id] = der
             else:
                 derivatives[var_id] += der
-
-    # Second pass: accumulate derivatives for all leaf nodes
-    print(derivatives)
+    
+    # 4. After all derivatives are accumulated, update leaf nodes
     for node in nodes:
         if node.is_leaf() and node.unique_id in derivatives:
             node.accumulate_derivative(derivatives[node.unique_id])
