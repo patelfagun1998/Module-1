@@ -157,5 +157,3 @@ def sum(lst1: List[float]) -> float:
 def prod(lst1: List[float]) -> float:
 
     return reduce(mul, lst1)
-
-# TODO: Implement for Task 0.3.
