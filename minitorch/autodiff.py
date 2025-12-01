@@ -74,17 +74,16 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     result = []
 
     def dfs(var: Variable) -> None:
-
         if var.is_constant():
             return
         
         if var.unique_id in seen:
             return
         
-        result.append(variable)
+        result.append(var)
         seen.add(var.unique_id)
 
-        if not var.is_leaf:
+        if not var.is_leaf():
             for node in var.parents:
                 dfs(node)
     dfs(variable)
@@ -101,26 +100,32 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    nodes = topological_sort(variable)
-
-    print(nodes)
-
+    nodes = list(topological_sort(variable))
     derivatives = {variable.unique_id: deriv}
 
     for node in nodes:
-
+        if node.unique_id not in derivatives:
+            continue
+        
+        # skip leaf for now
         if node.is_leaf():
-            node.accumulate_derivative(derivatives[node.unique_id])
             continue
 
         chain_deriv = node.chain_rule(derivatives[node.unique_id])
 
         for var, der in chain_deriv:
+            if var.is_constant():
+                continue
             var_id = var.unique_id
             if var_id not in derivatives:
                 derivatives[var_id] = der
             else:
                 derivatives[var_id] += der
+
+    # Second pass: accumulate derivatives for all leaf nodes
+    for node in nodes:
+        if node.is_leaf() and node.unique_id in derivatives:
+            node.accumulate_derivative(derivatives[node.unique_id])
 
 @dataclass
 class Context:
