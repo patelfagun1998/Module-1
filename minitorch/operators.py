@@ -72,7 +72,7 @@ def sigmoid(x: float) -> float:
 
 def relu(x: float) -> float:
 
-    return x if x >= 0 else 0.0
+    return x if x >= 0 else 0
 
 def log(x: float) -> float:
 
@@ -115,6 +115,7 @@ def zipWith(fn: Callable[[float, float], float], lst1: Iterable[float], lst2:Ite
 
 def reduce(fn: Callable[[float, float], float], lst: Iterable[float]) -> float:
 
+    print(lst)
     if not lst:
         return 0
     it = iter(lst)
@@ -156,3 +157,5 @@ def sum(lst1: List[float]) -> float:
 def prod(lst1: List[float]) -> float:
 
     return reduce(mul, lst1)
+
+# TODO: Implement for Task 0.3.
